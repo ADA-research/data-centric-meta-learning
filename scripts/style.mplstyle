@@ -1,0 +1,34 @@
+### FIGURE
+figure.facecolor: white
+figure.dpi: 300
+figure.titlesize: 14
+figure.titleweight: bold
+
+### LINES
+lines.linewidth: 1.5
+
+### PATCHES
+patch.facecolor: 0072B2
+
+### LEGEND
+legend.fontsize: 12
+
+### TICKS
+xtick.direction: out
+ytick.direction: out
+
+### FONTS
+font.family: serif
+font.weight: regular
+font.size: 12
+
+### AXES
+axes.grid: False
+axes.facecolor: white
+axes.linewidth: 1.0
+axes.titlesize: 12
+axes.titleweight: regular
+axes.labelsize: 12
+axes.labelweight: regular
+axes.spines.top: True
+axes.spines.right: True

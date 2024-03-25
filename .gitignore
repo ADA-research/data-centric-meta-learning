@@ -1,0 +1,15 @@
+/data/*/
+
+*__pycache__/
+
+*.pdf
+
+.vscode
+
+*.pth
+
+*.png
+
+/experiments/*
+
+/log/*
