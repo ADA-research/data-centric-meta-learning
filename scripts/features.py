@@ -10,29 +10,23 @@ from utils import DOMAIN_ORDER, DATA_PATH, META_ALBUM_DATASETS
 import torch
 from dataset import MetaAlbumDataset
 from torch.utils.data import DataLoader
-from resnet import ResNet
-import torch.nn as nn
 import csv
-from epoch import epoch
-import torchvision
 
 
 channels = ['r', 'g', 'b']
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", type=str, required=True,
-                        help="which dataset to compute features of.")
-    parser.add_argument("--exp_path", type=str, required=True,
-                        help="path of the experiment collection.")
-    parser.add_argument("--num_target_classes", type=int, default=5)
-    parser.add_argument("--seed", type=int, default=1,
-                        help="random seed to use.")
-    parser.add_argument("--folds", type=int, default=5)
-    parser.add_argument("--architecture", type=str, default='resnet-18',
-                        choices=['resnet-10', 'resnet-18', 'resnet-34'])
+    parser.add_argument('--dataset', type=str, required=True,
+                        help='which dataset to compute features of.')
+    parser.add_argument('--exp_path', type=str, required=True,
+                        help='path of the experiment collection.')
+    parser.add_argument('--num_target_classes', type=int, default=5)
+    parser.add_argument('--seed', type=int, default=1,
+                        help='random seed to use.')
+    parser.add_argument('--folds', type=int, default=5)
 
     return parser.parse_known_args()
 
@@ -49,10 +43,13 @@ def calculate_features(args):
     dataset_path = DATA_PATH / args.dataset
     meta_train_dataset = MetaAlbumDataset(
         dataset_path, args.seed, mode='train')
+
     dict_to_csv(pixel_features(meta_train_dataset),
                 train_features_path / 'pixel.csv')
+
     dict_to_csv(global_features(meta_train_dataset),
                 train_features_path / 'global.csv')
+
     dict_to_csv(achieved_train_acc(args.dataset, exp_path,
                 args.seed), train_features_path / 'model.csv')
 
@@ -61,11 +58,15 @@ def calculate_features(args):
         fold_path.mkdir(parents=True, exist_ok=True)
         test_dataset = MetaAlbumDataset(
             dataset_path, args.seed, mode='test', num_test_classes=5, fold_seed=fold)
+
         dict_to_csv(pixel_features(test_dataset), fold_path / 'pixel.csv')
+
         dict_to_csv(global_features(test_dataset, fold),
                     fold_path / 'global.csv')
+
         dict_to_csv(achieved_test_acc(args.dataset, exp_path,
                     args.seed, fold), fold_path / 'targets.csv')
+
         dict_to_csv(low_cost_proxy(args.dataset, exp_path,
                     args.seed, fold, 0), fold_path / 'proxy.csv')
 
@@ -101,7 +102,6 @@ def pixel_features(dataset: MetaAlbumDataset):
     dl = DataLoader(dataset, batch_size=len(dataset))
     for (input, _) in dl:
         input = input.to(device)
-        input_gs = torchvision.transforms.Grayscale(input)
         features['pixel_global_mean'] = torch.mean(input).item()
         features['pixel_global_std'] = torch.std(input).item()
         for i, c in enumerate(channels):
@@ -170,12 +170,12 @@ def dict_to_csv(dict: dict, path: Path):
         w.writerow(dict)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args, unparsed = parse_arguments()
 
     if len(unparsed) != 0:
-        raise ValueError(f"Argument {unparsed} not recognized")
+        raise ValueError(f'Argument {unparsed} not recognized')
 
-    print("features with the following arguments:", args)
+    print('features with the following arguments:', args)
 
     calculate_features(args)
