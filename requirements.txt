@@ -4,7 +4,7 @@ scipy>=1.7.2
 avalanche-lib==0.1.0
 torch>=1.8.1
 torchvision==0.11.3
-scikit-learn==1.0.2
+scikit-learn==1.5.0
 Pillow>=10.3.0
 openml
 seaborn
