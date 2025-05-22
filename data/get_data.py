@@ -1,7 +1,6 @@
 import openml
 import argparse
 
-
 def main(dataset_id: int):
     dataset = openml.datasets.get_dataset(
         dataset_id, download_data=True, download_all_files=True)

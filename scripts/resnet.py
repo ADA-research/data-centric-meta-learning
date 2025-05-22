@@ -1,3 +1,6 @@
+# This file was copied from the Meta-Album repository,
+# https://github.com/ihsaan-ullah/meta-album/blob/master/Code/Models/fsl_resnet.py
+
 import math
 from collections import OrderedDict
 
@@ -16,22 +19,21 @@ class ResidualBlock(nn.Module):
         self.padding = padding
         self.dev = dev
 
-        self.conv1 = nn.Conv2d(in_channels=in_channels, 
-            out_channels=out_channels, kernel_size=3, stride=stride,
-            padding=padding, bias=False)
+        self.conv1 = nn.Conv2d(in_channels=in_channels,
+                               out_channels=out_channels, kernel_size=3, stride=stride,
+                               padding=padding, bias=False)
         self.bn1 = nn.BatchNorm2d(num_features=out_channels, momentum=1)
         self.relu = nn.ReLU()
-        self.conv2 = nn.Conv2d(in_channels=out_channels, 
-            out_channels=out_channels, kernel_size=3, stride=1, 
-            padding=padding, bias=False)
+        self.conv2 = nn.Conv2d(in_channels=out_channels,
+                               out_channels=out_channels, kernel_size=3, stride=1,
+                               padding=padding, bias=False)
         self.bn2 = nn.BatchNorm2d(num_features=out_channels, momentum=1)
         self.skip = stride > 1
         if self.skip:
-            self.conv3 = nn.Conv2d(in_channels=in_channels, 
-                out_channels=out_channels, kernel_size=3, stride=stride,
-                padding=padding, bias=False)
+            self.conv3 = nn.Conv2d(in_channels=in_channels,
+                                   out_channels=out_channels, kernel_size=3, stride=stride,
+                                   padding=padding, bias=False)
             self.bn3 = nn.BatchNorm2d(num_features=out_channels, momentum=1)
-
 
     def forward(self, x):
         z = self.conv1(x)
@@ -46,42 +48,47 @@ class ResidualBlock(nn.Module):
             y = self.bn3(y)
         return self.relu(y + z)
 
-
     def forward_weights(self, x, weights):
         z = F.conv2d(input=x, weight=weights[0], bias=None, stride=self.stride,
-            padding=self.padding)
-        
-        z = F.batch_norm(z, 
-            torch.zeros(self.bn1.running_mean.size()).to(self.dev), 
-            torch.ones(self.bn1.running_var.size()).to(self.dev), weights[1], 
-            weights[2], momentum=1, training=True)
+                     padding=self.padding)
+
+        z = F.batch_norm(z,
+                         torch.zeros(self.bn1.running_mean.size()).to(
+                             self.dev),
+                         torch.ones(self.bn1.running_var.size()).to(
+                             self.dev), weights[1],
+                         weights[2], momentum=1, training=True)
 
         z = F.relu(z)
 
-        z = F.conv2d(input=z, weight=weights[3], bias=None, stride=1, 
-            padding=self.padding)
+        z = F.conv2d(input=z, weight=weights[3], bias=None, stride=1,
+                     padding=self.padding)
 
-        z = F.batch_norm(z, 
-            torch.zeros(self.bn2.running_mean.size()).to(self.dev), 
-            torch.ones(self.bn2.running_var.size()).to(self.dev), weights[4],
-            weights[5], momentum=1, training=True)
+        z = F.batch_norm(z,
+                         torch.zeros(self.bn2.running_mean.size()).to(
+                             self.dev),
+                         torch.ones(self.bn2.running_var.size()).to(
+                             self.dev), weights[4],
+                         weights[5], momentum=1, training=True)
 
         y = x
         if self.skip:
-            y = F.conv2d(input=y, weight=weights[6], bias=None, 
-                stride=self.stride, padding=self.padding)
+            y = F.conv2d(input=y, weight=weights[6], bias=None,
+                         stride=self.stride, padding=self.padding)
 
-            y = F.batch_norm(y, 
-                torch.zeros(self.bn3.running_mean.size()).to(self.dev), 
-                torch.ones(self.bn3.running_var.size()).to(self.dev), 
-                weights[7], weights[8], momentum=1, training=True)
+            y = F.batch_norm(y,
+                             torch.zeros(self.bn3.running_mean.size()).to(
+                                 self.dev),
+                             torch.ones(self.bn3.running_var.size()).to(
+                                 self.dev),
+                             weights[7], weights[8], momentum=1, training=True)
 
         return F.relu(y + z)
 
 
 class ResNet(nn.Module):
 
-    def __init__(self, num_blocks, dev, train_classes, eval_classes= None,
+    def __init__(self, num_blocks, dev, train_classes, eval_classes=None,
                  criterion=nn.CrossEntropyLoss(), img_size=128):
         super().__init__()
         self.num_blocks = num_blocks
@@ -91,30 +98,30 @@ class ResNet(nn.Module):
         self.criterion = criterion
 
         if num_blocks == 10:
-            layers = [1,1,1,1]
-            filters = [64,128,256,512]
+            layers = [1, 1, 1, 1]
+            filters = [64, 128, 256, 512]
         elif num_blocks == 18:
-            layers = [2,2,2,2]
-            filters = [64,128,256,512]
+            layers = [2, 2, 2, 2]
+            filters = [64, 128, 256, 512]
         elif num_blocks == 34:
-            layers = [3,4,6,3]
-            filters = [64,128,256,512]
+            layers = [3, 4, 6, 3]
+            filters = [64, 128, 256, 512]
         else:
             print("ResNet not recognize. It must be resnet10, 18, or 34")
-            import sys; sys.exit()
+            import sys
+            sys.exit()
 
         self.num_resunits = sum(layers)
 
-        
-        self.conv =  nn.Conv2d(in_channels=3, kernel_size=7, out_channels=64,
-            stride=2, padding=3, bias=False)
-        self.bn =  nn.BatchNorm2d(num_features=64,momentum=1)
+        self.conv = nn.Conv2d(in_channels=3, kernel_size=7, out_channels=64,
+                              stride=2, padding=3, bias=False)
+        self.bn = nn.BatchNorm2d(num_features=64, momentum=1)
         self.relu = nn.ReLU()
         self.flatten = nn.Flatten()
-        
+
         d = OrderedDict([])
 
-        inpsize = img_size        
+        inpsize = img_size
         c = 0
         prev_filter = 64
         for idx, (layer, filter) in enumerate(zip(layers, filters)):
@@ -123,7 +130,7 @@ class ResNet(nn.Module):
                 in_channels = 64
             else:
                 in_channels = filters[idx-1]
-                
+
             for i in range(layer):
                 if i > 0:
                     in_channels = filter
@@ -135,23 +142,21 @@ class ResNet(nn.Module):
                     stride = 1
                 prev_filter = filter
 
-
                 if inpsize % stride == 0:
                     padding = math.ceil(max((3 - stride), 0)/2)
                 else:
-                    padding = math.ceil(max(3 - (inpsize % stride),0)/2)
-
+                    padding = math.ceil(max(3 - (inpsize % stride), 0)/2)
 
                 d.update({f"res_block{c}": ResidualBlock(
                     in_channels=in_channels, out_channels=filter,
                     stride=stride, padding=padding, dev=dev)})
-                c+=1
+                c += 1
         self.model = nn.ModuleDict({"features": nn.Sequential(d)})
 
-        rnd_input = torch.rand((1,3,img_size,img_size))
+        rnd_input = torch.rand((1, 3, img_size, img_size))
         self.in_features = self.compute_in_features(rnd_input).size()[1]
         self.model.update({"out": nn.Linear(in_features=self.in_features,
-            out_features=self.train_classes).to(dev)})
+                                            out_features=self.train_classes).to(dev)})
 
     def compute_in_features(self, x):
         x = self.conv(x)
@@ -160,7 +165,7 @@ class ResNet(nn.Module):
         x = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         for i in range(self.num_resunits):
             x = self.model.features[i](x)
-        x = F.adaptive_avg_pool2d(x, output_size=(1,1))
+        x = F.adaptive_avg_pool2d(x, output_size=(1, 1))
         x = self.flatten(x)
         return x
 
@@ -171,19 +176,20 @@ class ResNet(nn.Module):
         x = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         for i in range(self.num_resunits):
             x = self.model.features[i](x)
-        x = F.adaptive_avg_pool2d(x, output_size=(1,1))
+        x = F.adaptive_avg_pool2d(x, output_size=(1, 1))
         x = self.flatten(x)
         x = self.model.out(x)
         return x
 
     def forward_weights(self, x, weights, embedding=False):
         z = F.conv2d(input=x, weight=weights[0], bias=None, stride=2,
-            padding=3)
+                     padding=3)
 
-        z = F.batch_norm(z, 
-            torch.zeros(self.bn.running_mean.size()).to(self.dev), 
-            torch.ones(self.bn.running_var.size()).to(self.dev), weights[1], 
-            weights[2], momentum=1, training=True)
+        z = F.batch_norm(z,
+                         torch.zeros(self.bn.running_mean.size()).to(self.dev),
+                         torch.ones(self.bn.running_var.size()).to(
+                             self.dev), weights[1],
+                         weights[2], momentum=1, training=True)
 
         z = F.relu(z)
         z = F.max_pool2d(z, kernel_size=3, stride=2, padding=1)
@@ -197,7 +203,7 @@ class ResNet(nn.Module):
             z = self.model.features[i].forward_weights(z, weights[lb:lb+incr])
             lb += incr
 
-        z = F.adaptive_avg_pool2d(z, output_size=(1,1))
+        z = F.adaptive_avg_pool2d(z, output_size=(1, 1))
         z = self.flatten(z)
         if embedding:
             return z
@@ -208,10 +214,10 @@ class ResNet(nn.Module):
         if num_classes is None:
             num_classes = self.eval_classes
         self.model.out = nn.Linear(in_features=self.in_features,
-            out_features=num_classes).to(self.dev)
+                                   out_features=num_classes).to(self.dev)
         self.model.out.bias = nn.Parameter(torch.zeros(
             self.model.out.bias.size(), device=self.dev))
-        
+
     def freeze_layers(self, freeze: bool, num_classes):
         if freeze:
             for param in self.parameters():

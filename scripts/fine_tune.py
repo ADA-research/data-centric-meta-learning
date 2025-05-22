@@ -41,7 +41,7 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_known_args()
 
 
-def transfer(args):
+def fine_tune(args):
     print(f'transfering {args.foundation} to {args.target}')
 
     starttime = time.time()
@@ -111,4 +111,4 @@ if __name__ == "__main__":
 
     print("transfer with the following arguments:", args)
 
-    transfer(args)
+    fine_tune(args)

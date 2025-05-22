@@ -1,12 +1,4 @@
 #!/bin/bash
-#-----------------------------------------------------------------------
-#
-#Author: Matt van den Nieuwenhuijzen
-#Contact: m.van.den.nieuwenhuijzen@umail.leidenuniv.nl
-#
-# this file utilises get_data.py and downloads and unpacks all (mini) meta-album datasets
-#-----------------------------------------------------------------------
-
 PARENT_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
 for i in {44281..44310}; do
